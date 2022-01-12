@@ -1,0 +1,1 @@
+The region should be br, eune, euw, jp, kr, na, lan, las, oce, ru, tr.

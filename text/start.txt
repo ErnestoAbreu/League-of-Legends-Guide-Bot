@@ -1,0 +1,1 @@
+It is a bot to obtain information about the League of Legends game. Enjoy it. /help

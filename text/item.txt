@@ -1,0 +1,10 @@
+How to use item command:
+
+/item 'id'
+id: The id of the item.
+
+/item 'item_name'
+item_name: The name of the item.
+
+/item 'group'
+group: all, basic, normal, legendary, mythic.

@@ -1,0 +1,7 @@
+__pycache__
+messages/*
+api_key.txt
+token.txt
+status.log
+test.py
+test.json

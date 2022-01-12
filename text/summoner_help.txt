@@ -1,0 +1,6 @@
+How to use summoner command:
+
+/summoner 'region' 'summoner_name'
+region: br, eune, euw, jp, kr, na, lan, las, oce, ru, tr
+
+example: /summoner lan pentaculos3k

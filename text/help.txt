@@ -1,0 +1,22 @@
+Commands list:
+/help: Shows everything the bot can do.
+/config: Shows your settings.
+/my_info: Shows info about your summoner.
+/my_lastmatches: Shows info about last matches you played.
+/summoner: Shows info about a summoner.
+/freechampions: Shows the current free champions.
+/item: Shows info about a item.
+/champion: Shows info about a champion.
+
+Region:
+br: Brazil
+eune: Europe North East
+euw: Europe West
+jp: Japan
+kr: Korea
+na: North America
+lan: Latin America North
+las: Latin America South
+oce: Oceania
+ru: Russia
+tr: Turkey
