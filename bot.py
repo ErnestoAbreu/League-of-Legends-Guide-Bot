@@ -1,6 +1,7 @@
-from telegram.ext import Updater, MessageHandler, CommandHandler, CallbackQueryHandler, Filters, CallbackContext
+from telegram.ext import Updater, MessageHandler, CommandHandler, CallbackQueryHandler, Filters
 from status import Status
-import command, user, config, check, threading
+import command, user, config, check
+import threading
 
 with open('token.txt', 'r') as file: TOKEN = file.read()
 status = Status()
@@ -36,14 +37,14 @@ def main():
 
     dispatcher.add_handler( MessageHandler(Filters.text, user.check) , group=1 )
 
-    updater.start_polling()
     # Start
+    updater.start_polling()
     status.write('')
-    status.write('Inicia el bot.')
+    status.write('START')
 
     thread = threading.Thread(target=user.spectator, args=(updater,))
     thread.start()
-    status.write('Empieza a correr spectator.')
+    status.write('spectator running')
 
     updater.idle()
     # End
