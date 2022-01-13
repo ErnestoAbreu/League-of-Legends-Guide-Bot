@@ -3,11 +3,11 @@ from telegram.ext import CallbackContext
 from riotwatcher import LolWatcher, ApiError
 import json, error, os
 
-with open('api_key.txt', 'r') as file: api_key = file.read()
+with open('data/api_key.txt', 'r') as file: api_key = file.read()
 lol_watcher = LolWatcher(api_key)
 
-with open('data/to_region_code.json', 'r') as file: to_region_code = json.loads(file.read())
-with open('data/region_of.json') as file: region_of = json.loads(file.read())
+with open('json/to_region_code.json', 'r') as file: to_region_code = json.loads(file.read())
+with open('json/region_of.json') as file: region_of = json.loads(file.read())
 
 def config(update: Update, context: CallbackContext) -> None:
     with open('data/registered_users.json') as file: registered_users = json.loads(file.read())

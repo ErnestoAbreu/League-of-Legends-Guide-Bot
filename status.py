@@ -2,7 +2,7 @@ from datetime import datetime
 
 class Status:
     def write(self, text: str) -> None:
-        file = open('status.log', 'a')
+        file = open('data/status.log', 'a')
         file.write(str(datetime.now()) + '  ' + text + '\n')
         file.close()
 

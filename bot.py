@@ -3,7 +3,7 @@ from status import Status
 import command, user, config, check
 import threading
 
-with open('token.txt', 'r') as file: TOKEN = file.read()
+with open('data/token.txt', 'r') as file: TOKEN = file.read()
 status = Status()
 
 def main():

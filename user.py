@@ -4,11 +4,11 @@ from riotwatcher import LolWatcher, ApiError
 from datetime import datetime, timedelta
 import json, command, error, threading, time, os 
 
-with open('api_key.txt', 'r') as file: api_key = file.read()
+with open('data/api_key.txt', 'r') as file: api_key = file.read()
 lol_watcher = LolWatcher(api_key)
 
-with open('data/to_region_code.json') as file: to_region_code = json.loads(file.read())
-with open('data/region_of.json') as file: region_of = json.loads(file.read())
+with open('json/to_region_code.json') as file: to_region_code = json.loads(file.read())
+with open('json/region_of.json') as file: region_of = json.loads(file.read())
 
 def check(update: Update , context: CallbackContext) -> None:
     with open(f'messages/user_{update.message.from_user.id}.log', 'a') as file:
@@ -51,7 +51,7 @@ def LiveMatch(update: Updater, chat_id: str, user: dict) -> None:
         if live_match['gameMode'] == 'CLASSIC' and live_match['gameId'] != user['last_gameId']:
             participants = live_match['participants']
     
-            with open('data/champions_name_dictionary.json') as file: champs = json.loads(file.read())
+            with open('json/champions_name_dictionary.json') as file: champs = json.loads(file.read())
 
             teamA = participants[0]['teamId']
             teamA_text = ''
