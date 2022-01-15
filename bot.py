@@ -1,10 +1,11 @@
 from telegram.ext import Updater, MessageHandler, CommandHandler, CallbackQueryHandler, Filters
-from status import Status
-import command, user, config, check
 import threading
 
-with open('data/token.txt', 'r') as file: TOKEN = file.read()
+from status import Status
+import command, user, config, check
+
 status = Status()
+TOKEN = status.get_token()
 
 def main():
 
@@ -31,6 +32,8 @@ def main():
     dispatcher.add_handler( CommandHandler('config', config.config), group=0 )
     dispatcher.add_handler( CommandHandler('config_region', config.region), group=0 )
     dispatcher.add_handler( CommandHandler('config_summoner', config.summoner), group=0 )
+    dispatcher.add_handler( CommandHandler('config_notify_on', config.notify_on), group=0 )
+    dispatcher.add_handler( CommandHandler('config_notify_off', config.notify_off), group=0 )
     dispatcher.add_handler( CommandHandler('config_spectator_on', config.spectator_on), group=0 )
     dispatcher.add_handler( CommandHandler('config_spectator_off', config.spectator_off), group=0 )
     dispatcher.add_handler( CommandHandler('config_time_zone', config.time_zone), group=0 )
@@ -42,9 +45,13 @@ def main():
     status.write('')
     status.write('START')
 
+    thread = threading.Thread(target=user.notify_update, args=(updater,))
+    thread.start()
+    status.write('notify_update is running')
+
     thread = threading.Thread(target=user.spectator, args=(updater,))
     thread.start()
-    status.write('spectator running')
+    status.write('spectator is running')
 
     updater.idle()
     # End

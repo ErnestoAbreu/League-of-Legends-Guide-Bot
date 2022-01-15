@@ -1,3 +1,6 @@
 __pycache__
-data/*
+data/api_key.txt
+data/registered_users.json
+data/status.log
+data/token.txt
 messages/*

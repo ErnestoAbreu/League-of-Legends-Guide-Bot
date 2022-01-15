@@ -2,23 +2,29 @@ from telegram import Update, ChatAction, InlineKeyboardButton, InlineKeyboardMar
 from telegram.ext import CallbackContext
 from riotwatcher import LolWatcher, TftWatcher, ApiError
 from datetime import datetime, timedelta
+import requests, json
+
 from status import Status
-import requests, json, image_wrap, error, os
+import image_wrap, error
 
 
 # Global variables
-with open('json/to_region_code.json', 'r') as file: to_region_code = json.loads(file.read())
-with open('json/region_of.json', 'r') as file: region_of = json.loads(file.read())
-with open('json/continent_of.json', 'r') as file: continent_of = json.loads(file.read())
+status = Status()
 
-with open('data/api_key.txt', 'r') as file: api_key = file.read()
+with open('json/items_name_to_id.json', 'r') as file: items_name_to_id = json.loads( file.read() )
+with open('json/items_by_type.json', 'r') as file: items_by_type = json.loads( file.read() )
+with open("json/champions_id_dictionary.json") as file: champions_id = json.loads( file.read() )
+with open("json/champions_name_dictionary.json") as file: champions_name = json.loads( file.read() )
+with open("json/champions_key_dictionary.json") as file: champions_key = json.loads( file.read() )
+with open('json/to_region_code.json', 'r') as file: to_region_code = json.loads( file.read() )
+with open('json/region_of.json', 'r') as file: region_of = json.loads( file.read() )
+with open('json/continent_of.json', 'r') as file: continent_of = json.loads( file.read() )
+
+api_key = status.get_riot_api()
 lol_watcher = LolWatcher(api_key)
 tft_watcher = TftWatcher(api_key)
 
-status = Status()
-
-version = json.loads( requests.get('https://ddragon.leagueoflegends.com/api/versions.json').text )
-last_version = version[0]
+last_version = status.get_last_version()
 
 
 # Functions
@@ -30,15 +36,13 @@ def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f"Hello {update.message.from_user.first_name}. " + text)
 
 def _help(update: Update, context: CallbackContext) -> None:
-    status.write('command.help was requested.')
     with open('text/help.txt') as file: text = file.read()
 
     update.message.reply_chat_action(ChatAction.TYPING)
     update.message.reply_text(text)
 
 def my_info(update: Update, context: CallbackContext) -> None:
-    status.write('command.my_info was requested.')
-    with open('data/registered_users.json', 'r') as file: registered_users = json.loads( file.read() )
+    registered_users = status.get_users_data()
     users = registered_users['users']
     user = users[str(update.message.from_user.id)]
 
@@ -50,8 +54,7 @@ def my_info(update: Update, context: CallbackContext) -> None:
         summoner(update, context)
 
 def matches(update: Update, context: CallbackContext) -> None:
-    status.write('command.matches was requested.')
-    with open('data/registered_users.json', 'r') as file: registered_users = json.loads( file.read() )
+    registered_users = status.get_users_data()
     users = registered_users['users']
     user = users[str(update.message.from_user.id)]
     
@@ -71,16 +74,12 @@ def matches(update: Update, context: CallbackContext) -> None:
                 if 1 <= int(context.args[0]) <= 20:
                     num = int(context.args[0])
 
-        status.write('matchIds request to Riot Api.')
         matchIds = lol_watcher.match.matchlist_by_puuid(continent_of[region], puuid, count=num)
-        status.write('matchIds request to Riot Api successfully.')
 
-        text = f'{summoner_name} last {num} matchs:\nResult | Champion | Level | K/D/A | CS | Gold\nDate | Duration | Type\n\n'
+        text = f'<b>{summoner_name}</b> last {num} matchs:\nResult | Champion | Level | K/D/A | CS | Gold\nDate | Duration | Type\n\n'
 
         for match_id in matchIds:
-            status.write('match request to Riot API.')
             match = lol_watcher.match.by_id(continent_of[region], match_id)['info']   
-            status.write('match request to Riot API successfully.')
 
             duration = datetime(1, 1, 1) + timedelta(seconds=match['gameDuration'])
             for player in match['participants']:
@@ -105,8 +104,7 @@ def matches(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 def summoner(update: Update, context: CallbackContext, is_back: bool=False) -> None:
-    status.write('command.summoner was requested.')
-    with open('data/registered_users.json', 'r') as file: registered_users = json.loads(file.read())
+    registered_users = status.get_users_data()
     users = registered_users['users']
     
     if not is_back:  
@@ -121,9 +119,7 @@ def summoner(update: Update, context: CallbackContext, is_back: bool=False) -> N
         if region in to_region_code:
             region_name = region_of[region]
             try:
-                status.write('summoner request to Riot API.')
                 summoner_info = lol_watcher.summoner.by_name(to_region_code[region], summoner_name)
-                status.write('summoner request to Riot API successfully.')
             except ApiError as err:
                 if err.response.status_code == 404:
                     update.message.reply_chat_action(ChatAction.TYPING)
@@ -186,26 +182,20 @@ def summoner(update: Update, context: CallbackContext, is_back: bool=False) -> N
         update.message.reply_text(text)
 
 def champion_mastery(update: Update, context: CallbackContext) -> None:
-    status.write('command.champion_mastery was requested.')
     password,region,summoner_name = update.callback_query.data.split(' ')
 
-    status.write('summoner request to Riot API.')
     summoner = lol_watcher.summoner.by_name(to_region_code[region], summoner_name)
-    status.write('summoner request to Riot API successfully.')
-    status.write('champion_mastery request to Riot API.')
+    
     champion_mastery_list = lol_watcher.champion_mastery.by_summoner(to_region_code[region], summoner['id'])
-    status.write('champion_mastery request to Riot API successfully.')
 
     answer_list = []
     for champion in champion_mastery_list:
         answer_list.append([champion['championLevel'], champion['championPoints'], champion['championId']])
     answer_list.sort(reverse=True)
 
-    with open("json/champions_name_dictionary.json") as file: champion_name = json.loads(file.read())
-
     text = f"<b>{summoner_name}</b>'s highest mastery level champions:\n"
     for i in range( min(10 , len(answer_list)) ):
-        text += f"Level: {answer_list[i][0]} - <b>{champion_name[str(answer_list[i][2])]}</b><code> </code>{answer_list[i][1]}\n"
+        text += f"Level: {answer_list[i][0]} - <b>{champions_name[str(answer_list[i][2])]}</b><code> </code>{answer_list[i][1]}\n"
     
     buttons = [[InlineKeyboardButton("Back", callback_data=f'back_to_summoner {region} {summoner_name}')]]
     keyboardMarkup = InlineKeyboardMarkup(buttons)
@@ -220,10 +210,7 @@ def back_to_summoner(update: Update, context: CallbackContext) -> None:
     return summoner(update, context, True)
 
 def free_champion(update: Update , context: CallbackContext) -> None:
-    status.write('command.free_champions was requested.')
-    with open("json/champions_name_dictionary.json") as file: champion_name = json.loads( file.read() )
-    with open("json/champions_id_dictionary.json") as file: champion_id = json.loads( file.read() )
-    with open('data/registered_users.json', 'r') as file: registered_users = json.loads( file.read() )
+    registered_users = status.get_users_data()
     users = registered_users['users']
     user = users[str(update.message.from_user.id)]
 
@@ -245,8 +232,8 @@ def free_champion(update: Update , context: CallbackContext) -> None:
 
             free_champions = rotation['freeChampionIds']
             for key in free_champions:
-                text += champion_name[str(key)] + ", "
-                image_wrap.setup(f'../images/champion/{champion_id[str(key)]}.png')
+                text += champions_name[str(key)] + ", "
+                image_wrap.setup(f'../images/champion/{champions_id[str(key)]}.png')
             image_wrap.wrap()
     
             text = text[:len(text)-2] + '.'
@@ -258,8 +245,8 @@ def free_champion(update: Update , context: CallbackContext) -> None:
             
             free_champions = rotation['freeChampionIdsForNewPlayers']
             for key in free_champions:
-                text += champion_name[str(key)] + ", "
-                image_wrap.setup(f'../images/champion/{champion_id[str(key)]}.png')
+                text += champions_name[str(key)] + ", "
+                image_wrap.setup(f'../images/champion/{champions_id[str(key)]}.png')
             image_wrap.wrap()
             
             text = text[:len(text)-2] + '.'
@@ -281,15 +268,11 @@ def _item(update: Update, context: CallbackContext) -> None:
         item_name += s + ' '
     item_name = item_name[:len(item_name)-1]
 
-    with open('json/items_name_to_id.json', 'r') as file: items_name_to_id = json.loads( file.read() )
-
     if item_name in items_name_to_id:
         context.args = [ items_name_to_id[item_name] ]
         return _item(update, context)
 
     if len(context.args) == 1:
-        with open('json/items_by_type.json', 'r') as file: items_by_type = json.loads( file.read() )
-        
         if context.args[0] == 'all':
             context.args = [ 'Basic' ]
             _item(update, context)
@@ -346,7 +329,7 @@ def _item(update: Update, context: CallbackContext) -> None:
                 text += f'Cost: {total}  -  Sell: {sell}\n'
             
             text += '\n'
-            text += status.transform_description(item['description'])
+            text += transform_description(item['description'])
 
             if 'from' in item:
                 text += 'From: \n'
@@ -385,26 +368,20 @@ def _item(update: Update, context: CallbackContext) -> None:
         update.message.reply_chat_action(ChatAction.TYPING)
         update.message.reply_text(text)
 
-"""  """
 
 def champion(update: Update, context: CallbackContext, is_back: bool=False) -> None:
-    with open('json/champions_id_dictionary.json', 'r') as file:
-        champions_id_dictionary = json.loads( file.read() )
-    with open('json/champions_key_dictionary.json', 'r') as file:
-        champions_key_dictionary = json.loads( file.read() )
-    
     champion_name = ''
     for s in context.args:
         champion_name += s + ' '
     champion_name = champion_name[:len(champion_name)-1]
 
-    if champion_name in champions_key_dictionary:
-        context.args = [ champions_key_dictionary[champion_name] ]
+    if champion_name in champions_key:
+        context.args = [ champions_key[champion_name] ]
         return champion(update, context)
     
     if len(context.args) == 1:
-        if context.args[0] in champions_id_dictionary:
-            _id = champions_id_dictionary[context.args[0]]
+        if context.args[0] in champions_id:
+            _id = champions_id[context.args[0]]
             champions = json.loads( requests.get(f'http://ddragon.leagueoflegends.com/cdn/{last_version}/data/en_US/champion/{_id}.json').text )
             data = champions['data']
             _champion = data[_id]
@@ -448,10 +425,8 @@ def back_to_champion(update: Update, context: CallbackContext) -> None:
 
 def champion_stats(update: Update, context: CallbackContext) -> None:
     password,key = update.callback_query.data.split(' ')
-
-    with open('json/champions_id_dictionary.json', 'r') as file: champions_id_dictionary = json.loads( file.read() )
     
-    _id = champions_id_dictionary[key]
+    _id = champions_id[key]
     champions = json.loads( requests.get(f'http://ddragon.leagueoflegends.com/cdn/{last_version}/data/en_US/champion/{_id}.json').text )
     data = champions['data']
 
@@ -491,14 +466,12 @@ def champion_stats(update: Update, context: CallbackContext) -> None:
 
 def champion_tips(update: Update, context: CallbackContext) -> None:
     password,key = update.callback_query.data.split(' ')
-
-    with open('json/champions_id_dictionary.json', 'r') as file: champions_id_dictionary = json.loads( file.read() )
     
-    _id = champions_id_dictionary[key]
+    _id = champions_id[key]
     champions = json.loads( requests.get(f'http://ddragon.leagueoflegends.com/cdn/{last_version}/data/en_US/champion/{_id}.json').text )
     data = champions['data']
 
-    _champion = data[ champions_id_dictionary[key] ]
+    _champion = data[ champions_id[key] ]
     name = _champion['name']
     title = _champion['title']
     ally_tips = _champion['allytips']
@@ -524,13 +497,11 @@ def champion_tips(update: Update, context: CallbackContext) -> None:
 def champion_spells(update: Update, context: CallbackContext) -> None:
     password,key,spell = update.callback_query.data.split(' ')
 
-    with open('json/champions_id_dictionary.json', 'r') as file: champions_id_dictionary = json.loads( file.read() )
-
-    _id = champions_id_dictionary[key]
+    _id = champions_id[key]
     champions = json.loads( requests.get(f'http://ddragon.leagueoflegends.com/cdn/{last_version}/data/en_US/champion/{_id}.json').text )
     data = champions['data']
 
-    _champion = data[ champions_id_dictionary[key] ]
+    _champion = data[ champions_id[key] ]
     name = _champion['name']
     title = _champion['title']
     passive = _champion['passive']
@@ -543,24 +514,24 @@ def champion_spells(update: Update, context: CallbackContext) -> None:
     
     if spell == 'passive':
         text += '<i>Passive</i>\n\n<b>' + passive['name'] + ':</b>\n'
-        text += status.transform_description(passive['description']) + '\n'
+        text += transform_description(passive['description']) + '\n'
         # text += '<a href=""> </a>'
 
     if spell == 'spellQ':
         text += '<i>Spell Q</i>\n\n<b>' + spellQ['name'] + ':</b>\n'
-        text += status.transform_description(spellQ['description']) + '\n'
+        text += transform_description(spellQ['description']) + '\n'
 
     if spell == 'spellW':
         text += '<i>Spell W</i>\n\n<b>' + spellW['name'] + ':</b>\n'
-        text += status.transform_description(spellW['description']) + '\n'
+        text += transform_description(spellW['description']) + '\n'
 
     if spell == 'spellE':
         text += '<i>Spell E</i>\n\n<b>' + spellE['name'] + ':</b>\n'
-        text += status.transform_description(spellE['description']) + '\n'
+        text += transform_description(spellE['description']) + '\n'
 
     if spell == 'spellR':
         text += '<i>Spell R</i>\n\n<b>' + spellR['name'] + ':</b>\n'
-        text += status.transform_description(spellR['description']) + '\n'
+        text += transform_description(spellR['description']) + '\n'
 
     pass_data = key
     buttons = [ 
@@ -581,13 +552,11 @@ def champion_spells(update: Update, context: CallbackContext) -> None:
 def champion_skins(update: Update, context: CallbackContext) -> None:
     password,key,skin = update.callback_query.data.split(' ')
 
-    with open('json/champions_id_dictionary.json', 'r') as file: champions_id_dictionary = json.loads( file.read() )
-
-    _id = champions_id_dictionary[key]
+    _id = champions_id[key]
     champions = json.loads( requests.get(f'http://ddragon.leagueoflegends.com/cdn/{last_version}/data/en_US/champion/{_id}.json').text )
     data = champions['data']
 
-    _champion = data[ champions_id_dictionary[key] ]
+    _champion = data[ champions_id[key] ]
     _id = _champion['id']
     name = _champion['skins'][int(skin)]['name']
     if name == 'default':
@@ -622,3 +591,38 @@ def champion_skins(update: Update, context: CallbackContext) -> None:
     update.callback_query.answer()
     update.callback_query.delete_message()
     update.callback_query.message.chat.send_photo(f'http://ddragon.leagueoflegends.com/cdn/img/champion/splash/{_id}_{num}.jpg', caption=text, parse_mode=ParseMode.HTML, reply_markup=keyboardMarkup)
+
+def transform_description(description: str) -> str:
+        check_tag = False
+        tag = ''
+        text = ''
+        for c in description:
+            if c == '<':
+                check_tag = True
+                continue
+
+            if c == '>':
+                check_tag = False
+                if tag == 'li': text += '\n'
+                if tag == 'stats': text += '<i>'
+                if tag == '/stats': text += '</i>'
+                if tag == 'attention': text += '<b>'
+                if tag == '/attention': text += '</b>'
+                if tag == 'br': text += '\n'
+                if tag == 'status': text += '<code>'
+                if tag == '/status': text += '</code>'
+                if tag == 'passive': text += '<b><i>'
+                if tag == '/passive': text += '</i></b>'
+                if tag == 'active': text += '<b><i>'
+                if tag == '/active': text += '</i></b>'
+                if tag == 'rarityMythic': text += '<b><i><u>'
+                if tag == '/rarityMythic': text += '</u></i></b>'
+                tag = ''
+                continue
+            
+            if check_tag:
+                tag += c
+            else:
+                text += c
+        
+        return text + '\n'    
