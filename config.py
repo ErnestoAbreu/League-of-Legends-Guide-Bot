@@ -86,11 +86,14 @@ def region(update: Update, context: CallbackContext) -> None:
 
 
 def summoner(update: Update, context: CallbackContext) -> None:
-    if len(context.args) != 1:
+    if len(context.args) == 0:
         update.message.reply_chat_action(ChatAction.TYPING)
         update.message.reply_text("How to use config_summoner command:\n/config_summoner 'summoner_name'\nExample: /config_summoner pentaculos3k")
     else: 
-        summoner_name = context.args[0]
+        summoner_name = ''
+        for s in context.args:
+            summoner_name += s + ' '
+        summoner_name = summoner_name[:len(summoner_name)-1]
 
         registered_users = status.get_users_data()
         users = registered_users['users']

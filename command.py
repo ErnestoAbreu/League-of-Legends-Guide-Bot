@@ -107,15 +107,22 @@ def summoner(update: Update, context: CallbackContext, is_back: bool=False) -> N
     registered_users = status.get_users_data()
     users = registered_users['users']
     
-    if not is_back:  
+    if not is_back and len(context.args) != 0:  
         user = users[str(update.message.from_user.id)]
         
-        if 'region' in user and len(context.args) == 1:
-            context.args = [user['region'], context.args[0]]
+        if 'region' in user and context.args[0] not in to_region_code:
+            lista = [user['region']]
+            lista.extend(context.args)
+            context.args = lista
             return summoner(update, context)
 
-    if len(context.args) == 2:
-        region, summoner_name = context.args
+    if len(context.args) >= 2:
+        region = context.args[0]
+        summoner_name = ''
+        for i in range(1,len(context.args)):
+            summoner_name += context.args[i] + ' '
+        summoner_name = summoner_name[:len(summoner_name)-1]
+
         if region in to_region_code:
             region_name = region_of[region]
             try:
@@ -182,7 +189,13 @@ def summoner(update: Update, context: CallbackContext, is_back: bool=False) -> N
         update.message.reply_text(text)
 
 def champion_mastery(update: Update, context: CallbackContext) -> None:
-    password,region,summoner_name = update.callback_query.data.split(' ')
+    args = update.callback_query.data.split(' ')
+    password = args[0]
+    region = args[1]
+    summoner_name = ''
+    for i in range(2,len(args)):
+        summoner_name += args[i] + ' '
+    summoner_name = summoner_name[:len(summoner_name)-1]
 
     summoner = lol_watcher.summoner.by_name(to_region_code[region], summoner_name)
     
@@ -204,7 +217,14 @@ def champion_mastery(update: Update, context: CallbackContext) -> None:
     update.callback_query.edit_message_caption(text, reply_markup=keyboardMarkup, parse_mode=ParseMode.HTML)
 
 def back_to_summoner(update: Update, context: CallbackContext) -> None:
-    password,region,summoner_name = update.callback_query.data.split(' ')
+    args = update.callback_query.data.split(' ')
+    password = args[0]
+    region = args[1]
+    summoner_name = ''
+    for i in range(2,len(args)):
+        summoner_name += args[i] + ' '
+    summoner_name = summoner_name[:len(summoner_name)-1]
+
     update.message = update.callback_query.message
     context.args = [region, summoner_name]
     return summoner(update, context, True)

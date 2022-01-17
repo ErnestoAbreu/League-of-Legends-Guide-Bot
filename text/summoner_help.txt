@@ -4,3 +4,5 @@ How to use summoner command:
 region: br, eune, euw, jp, kr, na, lan, las, oce, ru, tr
 
 example: /summoner lan pentaculos3k
+
+If the summoner name begins with a word that matches a region code, capitalize that word to differentiate it from the region code.
