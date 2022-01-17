@@ -4,3 +4,4 @@ data/registered_users.json
 data/status.log
 data/token.txt
 messages/*
+temp/*
