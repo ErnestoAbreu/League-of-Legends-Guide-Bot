@@ -1,13 +1,13 @@
 {
     "br1": "americas",
-    "eun1": "europa",
-    "euw1": "europa",
+    "eun1": "europe",
+    "euw1": "europe",
     "jp1": "asia",
     "kr": "asia",
     "na1": "americas",
     "la1": "americas",
     "la2": "americas",
     "oc1": "asia",
-    "ru": "europa",
+    "ru": "europe",
     "tr1": "asia"
 }

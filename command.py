@@ -84,7 +84,7 @@ def matches(update: Update, context: CallbackContext) -> None:
             duration = datetime(1, 1, 1) + timedelta(seconds=match['gameDuration'])
             for player in match['participants']:
                 if player['summonerName'] == summoner_name:
-                    if duration.hour * 60 + duration.minute <= 15:
+                    if duration.hour * 60 + duration.minute < 5:
                         text += '🔄 | '
                     elif player['win']:
                         text += '✅ | '
@@ -613,36 +613,36 @@ def champion_skins(update: Update, context: CallbackContext) -> None:
     update.callback_query.message.chat.send_photo(f'http://ddragon.leagueoflegends.com/cdn/img/champion/splash/{_id}_{num}.jpg', caption=text, parse_mode=ParseMode.HTML, reply_markup=keyboardMarkup)
 
 def transform_description(description: str) -> str:
-        check_tag = False
-        tag = ''
-        text = ''
-        for c in description:
-            if c == '<':
-                check_tag = True
-                continue
+    check_tag = False
+    tag = ''
+    text = ''
+    for c in description:
+        if c == '<':
+            check_tag = True
+            continue
 
-            if c == '>':
-                check_tag = False
-                if tag == 'li': text += '\n'
-                if tag == 'stats': text += '<i>'
-                if tag == '/stats': text += '</i>'
-                if tag == 'attention': text += '<b>'
-                if tag == '/attention': text += '</b>'
-                if tag == 'br': text += '\n'
-                if tag == 'status': text += '<code>'
-                if tag == '/status': text += '</code>'
-                if tag == 'passive': text += '<b><i>'
-                if tag == '/passive': text += '</i></b>'
-                if tag == 'active': text += '<b><i>'
-                if tag == '/active': text += '</i></b>'
-                if tag == 'rarityMythic': text += '<b><i><u>'
-                if tag == '/rarityMythic': text += '</u></i></b>'
-                tag = ''
-                continue
-            
-            if check_tag:
-                tag += c
-            else:
-                text += c
+        if c == '>':
+            check_tag = False
+            if tag == 'li': text += '\n'
+            if tag == 'stats': text += '<i>'
+            if tag == '/stats': text += '</i>'
+            if tag == 'attention': text += '<b>'
+            if tag == '/attention': text += '</b>'
+            if tag == 'br': text += '\n'
+            if tag == 'status': text += '<code>'
+            if tag == '/status': text += '</code>'
+            if tag == 'passive': text += '<b><i>'
+            if tag == '/passive': text += '</i></b>'
+            if tag == 'active': text += '<b><i>'
+            if tag == '/active': text += '</i></b>'
+            if tag == 'rarityMythic': text += '<b><i><u>'
+            if tag == '/rarityMythic': text += '</u></i></b>'
+            tag = ''
+            continue
         
-        return text + '\n'    
+        if check_tag:
+            tag += c
+        else:
+            text += c
+    
+    return text + '\n'    
