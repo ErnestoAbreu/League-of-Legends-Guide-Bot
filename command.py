@@ -119,7 +119,12 @@ def summoner(update: Update, context: CallbackContext, is_back: bool=False) -> N
                 
                 text += soloq_text + flex_text + tft_text
                 
-                buttons = [[ InlineKeyboardButton('Champions Mastery', callback_data=f'champion_mastery {region} {summoner_name}')]]
+                if is_back:
+                    userID = update.callback_query.from_user.id
+                else:
+                    userID = update.message.from_user.id
+                
+                buttons = [[ InlineKeyboardButton('Champions Mastery', callback_data=f'champion_mastery {userID} {region} {summoner_name}')]]
                 keyboardMarkup = InlineKeyboardMarkup(buttons)
 
                 url = f'http://ddragon.leagueoflegends.com/cdn/{last_version}/img/profileicon/' + str(summoner_info['profileIconId']) + '.png'
@@ -140,44 +145,55 @@ def summoner(update: Update, context: CallbackContext, is_back: bool=False) -> N
 
 def champion_mastery(update: Update, context: CallbackContext) -> None:
     args = update.callback_query.data.split(' ')
+    
     password = args[0]
-    region = args[1]
+    owner = int(args[1])
+    region = args[2]
     summoner_name = ''
-    for i in range(2,len(args)):
+    for i in range(3,len(args)):
         summoner_name += args[i] + ' '
     summoner_name = summoner_name[:len(summoner_name)-1]
 
-    summoner = lol_watcher.summoner.by_name(to_region_code[region], summoner_name)
-    
-    champion_mastery_list = lol_watcher.champion_mastery.by_summoner(to_region_code[region], summoner['id'])
 
-    answer_list = []
-    for champion in champion_mastery_list:
-        answer_list.append([champion['championLevel'], champion['championPoints'], champion['championId']])
-    answer_list.sort(reverse=True)
+    if update.callback_query.from_user.id == owner:
+        summoner = lol_watcher.summoner.by_name(to_region_code[region], summoner_name)
+        
+        champion_mastery_list = lol_watcher.champion_mastery.by_summoner(to_region_code[region], summoner['id'])
 
-    text = f"<b>{summoner_name}</b>'s highest mastery level champions:\n"
-    for i in range( min(10 , len(answer_list)) ):
-        text += f"Level: {answer_list[i][0]} - <b>{champions_name[str(answer_list[i][2])]}</b><code> </code>{answer_list[i][1]}\n"
-    
-    buttons = [[InlineKeyboardButton("Back", callback_data=f'back_to_summoner {region} {summoner_name}')]]
-    keyboardMarkup = InlineKeyboardMarkup(buttons)
+        answer_list = []
+        for champion in champion_mastery_list:
+            answer_list.append([champion['championLevel'], champion['championPoints'], champion['championId']])
+        answer_list.sort(reverse=True)
 
-    update.callback_query.answer()
-    update.callback_query.edit_message_caption(text, reply_markup=keyboardMarkup, parse_mode=ParseMode.HTML)
+        text = f"<b>{summoner_name}</b>'s highest mastery level champions:\n"
+        for i in range( min(10 , len(answer_list)) ):
+            text += f"Level: {answer_list[i][0]} - <b>{champions_name[str(answer_list[i][2])]}</b><code> </code>{answer_list[i][1]}\n"
+        
+        buttons = [[InlineKeyboardButton("Back", callback_data=f'back_to_summoner {owner} {region} {summoner_name}')]]
+        keyboardMarkup = InlineKeyboardMarkup(buttons)
+
+        update.callback_query.answer()
+        update.callback_query.edit_message_caption(text, reply_markup=keyboardMarkup, parse_mode=ParseMode.HTML)
+    else:
+        update.callback_query.answer('This message does not belong to you.')
 
 def back_to_summoner(update: Update, context: CallbackContext) -> None:
     args = update.callback_query.data.split(' ')
+    
     password = args[0]
-    region = args[1]
+    owner = int(args[1])
+    region = args[2]
     summoner_name = ''
-    for i in range(2,len(args)):
+    for i in range(3,len(args)):
         summoner_name += args[i] + ' '
     summoner_name = summoner_name[:len(summoner_name)-1]
 
-    update.message = update.callback_query.message
-    context.args = [region, summoner_name]
-    return summoner(update, context, True)
+    if update.callback_query.from_user.id == owner:
+        update.message = update.callback_query.message
+        context.args = [region, summoner_name]
+        return summoner(update, context, True)
+    else:
+        update.callback_query.answer('This message does not belong to you.')
 
 def matches(update: Update, context: CallbackContext) -> None:
     registered_users = status.get_users_data()
