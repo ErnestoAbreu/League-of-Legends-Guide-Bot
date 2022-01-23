@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import requests, json
 
 from status import Status
-import image_wrap, error
+import image_wrap
 
 
 # Global variables
@@ -52,56 +52,6 @@ def my_info(update: Update, context: CallbackContext) -> None:
     else:
         context.args = [user['region'], user['summoner']]
         summoner(update, context)
-
-def matches(update: Update, context: CallbackContext) -> None:
-    registered_users = status.get_users_data()
-    users = registered_users['users']
-    user = users[str(update.message.from_user.id)]
-    
-    if 'summoner' not in user:
-        update.message.reply_chat_action(ChatAction.TYPING)
-        update.message.reply_text("You haven't configured your summoner account yet. /config")
-    else:
-        region = to_region_code[ user['region'] ]
-        summoner_name = user['summoner']
-        puuid = user['puuid']
-
-        update.message.reply_chat_action(ChatAction.TYPING)
-        
-        num = 10
-        if len(context.args) == 1:
-            if context.args[0].isnumeric():
-                if 1 <= int(context.args[0]) <= 20:
-                    num = int(context.args[0])
-
-        matchIds = lol_watcher.match.matchlist_by_puuid(continent_of[region], puuid, count=num)
-
-        text = f'<b>{summoner_name}</b> last {num} matchs:\nResult | Champion | Level | K/D/A | CS | Gold\nDate | Duration | Type\n\n'
-
-        for match_id in matchIds:
-            match = lol_watcher.match.by_id(continent_of[region], match_id)['info']   
-
-            duration = datetime(1, 1, 1) + timedelta(seconds=match['gameDuration'])
-            for player in match['participants']:
-                if player['summonerName'] == summoner_name:
-                    if duration.hour * 60 + duration.minute < 5:
-                        text += '🔄 | '
-                    elif player['win']:
-                        text += '✅ | '
-                    else:
-                        text += '❌ | '
-                    text += f"<b><i>{player['championName']}</i></b> | "
-                    text += f"<code>lvl {player['champLevel']}</code> | "
-                    text += f"<b>{player['kills']}</b> / <b>{player['deaths']}</b> / <b>{player['assists']}</b> | "
-                    text += f"👾 {player['neutralMinionsKilled'] + player['totalMinionsKilled']} | "
-                    text += f"💰 {player['goldEarned']}"
-            text += '\n'
-            text += '<code>' + datetime.utcfromtimestamp( match['gameStartTimestamp'] / 1000 + user['time_zone'] * 60 * 60 ).strftime('%Y-%m-%d %H:%M') + '</code> | '
-            text += '⏱' + ("%d:%d" % (duration.hour * 60 + duration.minute, duration.second) ) + ' | '
-            text += match['gameMode']       
-            text += '\n\n'
-            
-        update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 def summoner(update: Update, context: CallbackContext, is_back: bool=False) -> None:
     registered_users = status.get_users_data()
@@ -229,6 +179,56 @@ def back_to_summoner(update: Update, context: CallbackContext) -> None:
     context.args = [region, summoner_name]
     return summoner(update, context, True)
 
+def matches(update: Update, context: CallbackContext) -> None:
+    registered_users = status.get_users_data()
+    users = registered_users['users']
+    user = users[str(update.message.from_user.id)]
+    
+    if 'summoner' not in user:
+        update.message.reply_chat_action(ChatAction.TYPING)
+        update.message.reply_text("You haven't configured your summoner account yet. /config")
+    else:
+        region = to_region_code[ user['region'] ]
+        summoner_name = user['summoner']
+        puuid = user['puuid']
+
+        update.message.reply_chat_action(ChatAction.TYPING)
+        
+        num = 10
+        if len(context.args) == 1:
+            if context.args[0].isnumeric():
+                if 1 <= int(context.args[0]) <= 20:
+                    num = int(context.args[0])
+
+        matchIds = lol_watcher.match.matchlist_by_puuid(continent_of[region], puuid, count=num)
+
+        text = f'<b>{summoner_name}</b> last {num} matchs:\nResult | Champion | Level | K/D/A | CS | Gold\nDate | Duration | Type\n\n'
+
+        for match_id in matchIds:
+            match = lol_watcher.match.by_id(continent_of[region], match_id)['info']   
+
+            duration = datetime(1, 1, 1) + timedelta(seconds=match['gameDuration'])
+            for player in match['participants']:
+                if player['summonerName'] == summoner_name:
+                    if duration.hour * 60 + duration.minute < 5:
+                        text += '🔄 | '
+                    elif player['win']:
+                        text += '✅ | '
+                    else:
+                        text += '❌ | '
+                    text += f"<b><i>{player['championName']}</i></b> | "
+                    text += f"<code>lvl {player['champLevel']}</code> | "
+                    text += f"<b>{player['kills']}</b> / <b>{player['deaths']}</b> / <b>{player['assists']}</b> | "
+                    text += f"👾 {player['neutralMinionsKilled'] + player['totalMinionsKilled']} | "
+                    text += f"💰 {player['goldEarned']}"
+            text += '\n'
+            text += '<code>' + datetime.utcfromtimestamp( match['gameStartTimestamp'] / 1000 + user['time_zone'] * 60 * 60 ).strftime('%Y-%m-%d %H:%M') + '</code> | '
+            text += '⏱' + ("%d:%d" % (duration.hour * 60 + duration.minute, duration.second) ) + ' | '
+            text += match['gameMode']       
+            text += '\n\n'
+            
+        update.message.reply_text(text, parse_mode=ParseMode.HTML)
+
 def free_champion(update: Update , context: CallbackContext) -> None:
     registered_users = status.get_users_data()
     users = registered_users['users']
@@ -240,16 +240,15 @@ def free_champion(update: Update , context: CallbackContext) -> None:
 
     update.message.reply_chat_action(ChatAction.TYPING)
 
-    text = "The current free champions are: "
 
     if len(context.args) == 1:
         if context.args[0] in to_region_code:
             region = context.args[0]
             
-            status.write('rotations request to Riot API.')
             rotation = lol_watcher.champion.rotations(to_region_code[region])
-            status.write('rotations request to Riot API successfully.')
 
+            text = "The current free champions are: "
+            
             free_champions = rotation['freeChampionIds']
             for key in free_champions:
                 text += champions_name[str(key)] + ", "
@@ -259,8 +258,33 @@ def free_champion(update: Update , context: CallbackContext) -> None:
             text = text[:len(text)-2] + '.'
 
             update.message.reply_photo(open('temp/wrapped.jpg', 'rb'), caption=text)
+        else:
+            with open('text/region.txt', 'r') as file: text = file.read()
+            update.message.reply_text(text)
+    else:
+        with open('text/free_champions_help.txt', 'r') as file: text = file.read()
+        update.message.reply_text(text)
+
+def free_champion_for_new_players(update: Update , context: CallbackContext) -> None:
+    print('asd')
+    registered_users = status.get_users_data()
+    users = registered_users['users']
+    user = users[str(update.message.from_user.id)]
+
+    if 'region' in user and len(context.args) == 0:
+        context.args = [user['region']]
+        return free_champion_for_new_players(update, context)
+
+    update.message.reply_chat_action(ChatAction.TYPING)
+
+    if len(context.args) == 1:
+        if context.args[0] in to_region_code:
+            region = context.args[0]
+            
+            rotation = lol_watcher.champion.rotations(to_region_code[region])
 
             new_player_level = rotation['maxNewPlayerLevel']
+            
             text = f"The current free champions for players up to level {new_player_level} are: "
             
             free_champions = rotation['freeChampionIdsForNewPlayers']

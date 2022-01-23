@@ -4,8 +4,11 @@ import threading
 from status import Status
 import command, user, config, check
 
+
+""" Global variables """
 status = Status()
 TOKEN = status.get_token()
+
 
 def main():
 
@@ -21,6 +24,7 @@ def main():
     dispatcher.add_handler( CallbackQueryHandler(command.champion_mastery, pattern=check.summoner_champion_mastery) )
     dispatcher.add_handler( CallbackQueryHandler(command.back_to_summoner, pattern=check.back_to_summoner) )
     dispatcher.add_handler( CommandHandler('freechampions', command.free_champion), group=0 )
+    dispatcher.add_handler( CommandHandler('freechampions_fornewplayers', command.free_champion_for_new_players), group=0 )
     dispatcher.add_handler( CommandHandler('item', command._item), group=0 )
     dispatcher.add_handler( CommandHandler('champion', command.champion), group=0 )
     dispatcher.add_handler( CallbackQueryHandler(command.back_to_champion, pattern=check.back_to_champion), group=0 )
@@ -40,21 +44,19 @@ def main():
 
     dispatcher.add_handler( MessageHandler(Filters.text, user.check) , group=1 )
 
-    # Start
+    """ Start """
     updater.start_polling()
     status.write('')
     status.write('START')
 
     thread = threading.Thread(target=user.notify_update, args=(updater,))
     thread.start()
-    status.write('notify_update is running')
 
     thread = threading.Thread(target=user.spectator, args=(updater,))
     thread.start()
-    status.write('spectator is running')
 
     updater.idle()
-    # End
+    """ End """
 
 if __name__ == '__main__':
     main()

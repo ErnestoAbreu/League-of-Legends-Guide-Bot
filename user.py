@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import json, threading, time, requests
 
 from status import Status
-import command, error
+import command
 
 
 # Global variables
@@ -148,6 +148,6 @@ def notify_update(update: Updater) -> None:
 
             for chat_id,value in users.items():
                 if value['notify_update']:
-                    update.bot.send_message(chat_id, f'New update available. Version: {last_version}.')
+                    update.bot.send_message(chat_id, f'New update is coming soon. Version: {last_version}.')
 
         time.sleep(3600)

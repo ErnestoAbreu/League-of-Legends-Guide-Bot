@@ -1,4 +1,4 @@
-Region: you can omit the 'region' argument when required.
-Summoner: you can receive information from your summoner easier. This one needs the Region before.
-Notify: you receive message from bot.
-Spectate: you can receive information about the match you are playing. This one needs the Region and Summoner before.
+<b>Region</b>: you can omit the 'region' argument when required.
+<b>Summoner</b>: you can receive information from your summoner easier. This one needs the Region before.
+<b>Notify</b>: you receive message from bot.
+<b>Spectate</b>: you can receive information about the match you are playing. This one needs the Region and Summoner before.

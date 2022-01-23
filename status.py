@@ -7,7 +7,7 @@ class Status:
             file.write(str(datetime.now()) + '  ' + text + '\n')
     
 
-    # Get Data
+    """ Get Data """
     def get_users_data(self) -> dict:
         with open('data/registered_users.json', 'r') as file:
             registered_users = json.loads( file.read() )
@@ -33,7 +33,7 @@ class Status:
         return last_version
 
 
-    # Save Data
+    """ Save Data """
     def save_users_data(self, registered_users: dict) -> None:
         with open('data/registered_users.json', 'w') as file:
             file.write( json.dumps(registered_users, indent=4, sort_keys=True) )

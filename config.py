@@ -1,10 +1,9 @@
-from telegram import Update, ChatAction
+from telegram import Update, ChatAction, ParseMode
 from telegram.ext import CallbackContext
 from riotwatcher import LolWatcher, ApiError
 import json
 
 from status import Status
-import error
 
 
 # Global variables
@@ -23,31 +22,31 @@ def config(update: Update, context: CallbackContext) -> None:
     users = registered_users['users']
     user = users[str(update.message.from_user.id)]
 
-    text = 'Settings:\n'
+    text = '<b>Settings</b>:\n'
     
-    text += 'Region: '
+    text += '<b>Region</b>: '
     if 'region' in user:
         text += region_of[user['region']]
     text += "   /config_region\n"
     
-    text += 'Summoner: '
+    text += '<b>Summoner</b>: '
     if 'summoner' in user:
         text += user['summoner']
     text += "   /config_summoner\n"
 
-    text += 'Notify: '
+    text += '<b>Notify</b>: '
     if user['notify_update']:
         text += '✅   /config_notify_off\n'
     else:
         text += '❌   /config_notify_on\n'
 
-    text += 'Spectate: '
+    text += '<b>Spectate</b>: '
     if user['spectator_permission']:
         text += '✅   /config_spectator_off\n'
     else:
         text += '❌   /config_spectator_on\n'
     
-    text += 'Time Zone: '
+    text += '<b>Time Zone</b>: '
     if user['time_zone'] == 0:
         text += 'UTC'
     elif user['time_zone'] > 0:
@@ -59,7 +58,8 @@ def config(update: Update, context: CallbackContext) -> None:
     
     with open('text/config.txt', 'r') as file: text += file.read()
 
-    update.message.reply_text(text)
+    update.message.reply_chat_action(ChatAction.TYPING)
+    update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 def region(update: Update, context: CallbackContext) -> None:
     if len(context.args) != 1:
