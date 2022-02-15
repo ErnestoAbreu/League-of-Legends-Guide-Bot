@@ -339,7 +339,7 @@ class Summoner:
                             champion_mastery_ptos = str(champion_mastery_ptos) + 'k'
 
                 champion_winrate = -1
-                if CurrentGameInfo['gameQueueConfigId'] in [420,440]:
+                if CurrentGameInfo['gameQueueConfigId'] in [420,440] and ChampionPerformance['Season12']:
                     for champion in ChampionPerformance['Season12'][CurrentGameInfo['gameQueueConfigId']]:
                         if champion['championId'] == champion_id:
                             champion_winrate = round(champion['wins'] / champion['totalMatches'] * 100, 0)
