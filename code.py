@@ -212,9 +212,13 @@ class Summoner:
 
     def champion_kda(self) -> Response:
         response = Response()
-        ChampionPerformance = data["SummonerData"][self.region + self.summoner_name][
-            "ChampionPerformance"
-        ]
+        ChampionPerformance = data["SummonerData"][self.region + self.summoner_name]["ChampionPerformance"]
+        
+        if ChampionPerformance["Season12"] == None:
+            response.text = "Unexpected Error"
+            status.write(f"Unexpected ERROR: code.Summoner.champion_kda({self.region}, {self.summoner_name}, {self.last_version})")
+            return response
+
         championStats = dict()
 
         for queueId, basicCP in ChampionPerformance["Season12"].items():
@@ -391,34 +395,6 @@ class Summoner:
         url = "https://u.gg/api"
         headers = {"Content-Type": "application/json"}
 
-        # # For Season11
-        # ChampionPerformance["Season11"] = dict()
-
-        # payload = json.dumps(
-        #     {
-        #         "operationName": "getPlayerStats",
-        #         "variables": {
-        #             "summonerName": self.summoner_name,
-        #             "regionId": self.region,
-        #             "role": 7,
-        #             "seasonId": 17,
-        #             "queueType": [400, 420, 440],
-        #         },
-        #         "query": "query getPlayerStats($queueType: [Int!], $regionId: String!, $role: Int!, $seasonId: Int!, $summonerName: String!) {\n fetchPlayerStatistics(\n queueType: $queueType\n summonerName: $summonerName\n regionId: $regionId\n role: $role\n seasonId: $seasonId\n ) {\n basicChampionPerformances {\n assists\n championId\n cs\n damage\n damageTaken\n deaths\n doubleKills\n gold\n kills\n maxDeaths\n maxKills\n pentaKills\n quadraKills\n totalMatches\n tripleKills\n wins\n lpAvg\n }\n queueType\n}\n}\n",
-        #     }
-        # )
-        # response = requests.request("POST", url, headers=headers, data=payload)
-
-        # if response.status_code != 200:
-        #     ChampionPerformance["Season11"] = None
-
-        # playerStats = response.json()
-        # for queue in playerStats["data"]["fetchPlayerStatistics"]:
-        #     basicChampionPerformance = queue["basicChampionPerformances"]
-        #     ChampionPerformance["Season11"][
-        #         queue["queueType"]
-        #     ] = basicChampionPerformance
-
         # For Season12
         ChampionPerformance["Season12"] = dict()
 
@@ -435,17 +411,18 @@ class Summoner:
                 "query": "query getPlayerStats($queueType: [Int!], $regionId: String!, $role: Int!, $seasonId: Int!, $summonerName: String!) {\n fetchPlayerStatistics(\n queueType: $queueType\n summonerName: $summonerName\n regionId: $regionId\n role: $role\n seasonId: $seasonId\n ) {\n basicChampionPerformances {\n assists\n championId\n cs\n damage\n damageTaken\n deaths\n doubleKills\n gold\n kills\n maxDeaths\n maxKills\n pentaKills\n quadraKills\n totalMatches\n tripleKills\n wins\n lpAvg\n }\n queueType\n}\n}\n",
             }
         )
-        response = requests.request("POST", url, headers=headers, data=payload)
-
-        if response.status_code != 200:
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+        except:
             ChampionPerformance["Season12"] = None
-
-        playerStats = response.json()
-        for queue in playerStats["data"]["fetchPlayerStatistics"]:
-            basicChampionPerformance = queue["basicChampionPerformances"]
-            ChampionPerformance["Season12"][
-                queue["queueType"]
-            ] = basicChampionPerformance
+        else:
+            if response.status_code != 200:
+                ChampionPerformance["Season12"] = None
+            else:
+                playerStats = response.json()
+                for queue in playerStats["data"]["fetchPlayerStatistics"]:
+                    basicChampionPerformance = queue["basicChampionPerformances"]
+                    ChampionPerformance["Season12"][queue["queueType"]] = basicChampionPerformance
 
         return ChampionPerformance
 

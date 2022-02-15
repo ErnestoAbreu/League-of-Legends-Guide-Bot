@@ -1,7 +1,6 @@
 from telegram import ChatAction, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
 from telegram.ext import CallbackContext, CallbackQueryHandler, CommandHandler, Filters, MessageHandler, Updater
-from datetime import datetime, timedelta
-from code import Response, Summoner, Champions
+from code import Summoner, Champions
 from status import Status
 import threading
 import requests
@@ -360,7 +359,9 @@ def config_summoner(update: Update, context: CallbackContext) -> None:
             region = to_region_code[user['region']]
 
             summonerObj = Summoner(region, summoner_name, last_version, user['time_zone'])
-            response = summonerObj.main()
+            summonerObj.main()
+            response = summonerObj.summoner()
+            
             if response.error:
                 update.message.reply_chat_action(ChatAction.TYPING)
                 update.message.reply_text(response.text)
