@@ -1,5 +1,5 @@
-How to use freechampions command:
+How to use config_region command:
 
-/freechampions 'region'
+/config_region 'region'
 
 region: br, eune, euw, jp, kr, na, lan, las, oce, ru, tr

@@ -1,0 +1,13 @@
+help - Shows everything the bot can do.
+config - Shows your settings.
+my_info - Shows info about your summoner.
+my_lastmatches - Shows info about last matches you played.
+my_current_match - Shows info about your current match.
+summoner - Shows info about a summoner.
+current_match - Shows info about the current match of a summoner.
+freechampions - Shows the current free champions.
+freechampions_fornewplayers - Shows the current free champions for new players.
+champion - Shows info about a champion.
+item - Shows info about a item.
+rune - Shows info about a rune.
+summoner_spell - Shows info about a summoner_spell.

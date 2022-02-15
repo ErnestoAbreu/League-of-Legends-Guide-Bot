@@ -9,5 +9,14 @@
     "las": "Latin America South",
     "oce": "Oceania",
     "ru": "Russia",
-    "tr": "Turkey"
+    "tr": "Turkey",
+    "br1": "Brazil",
+    "eun1": "Europe North East",
+    "euw1": "Europe West",
+    "jp1": "Japan",
+    "na1": "North America",
+    "la1": "Latin America North",
+    "la2": "Latin America South",
+    "oc1": "Oceania",
+    "tr1": "Turkey"
 }

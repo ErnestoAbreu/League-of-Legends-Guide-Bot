@@ -1,11 +1,10 @@
 from riotwatcher import LolWatcher , ApiError
 import requests, json, urllib, os
+from status import Status
 
-with open('data/api_key.txt', 'r') as file: api_key = file.read()
-lol_watcher = LolWatcher(api_key)
 
-version = json.loads(requests.get('https://ddragon.leagueoflegends.com/api/versions.json').text)
-last_version = version[0]
+status = Status()
+lol_watcher = LolWatcher(status.data.api_key)
 
 """ Downloads images """
 # # Descarga las imagenes de los champion de data dragon

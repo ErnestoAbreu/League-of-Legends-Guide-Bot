@@ -1,3 +1,9 @@
+<b>Settings</b>:
+<b>Region</b>: {region} /config_region
+<b>Summoner</b>: {summoner} /config_summoner
+<b>Notify</b>: {notify}
+<b>Time Zone</b>: {time_zone} /config_time_zone
+
 <b>Region</b>: you can omit the 'region' argument when required.
 <b>Summoner</b>: you can receive information from your summoner easier. This one needs the Region before.
 <b>Notify</b>: you receive message from bot.

@@ -1,1 +1,1 @@
-It is a bot to obtain information about the League of Legends game. Enjoy it. /help
+League of Legends Guide is a bot with which you can get information about the game League of Legends. Enjoy it. /help

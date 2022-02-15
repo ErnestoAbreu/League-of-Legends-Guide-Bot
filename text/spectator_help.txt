@@ -1,0 +1,9 @@
+How to use current_match command:
+
+/current_match 'region' 'summoner_name'
+
+region: br, eune, euw, jp, kr, na, lan, las, oce, ru, tr
+
+example: /current_match lan pentaculos3k
+
+If the summoner name begins with a word that matches a region code, capitalize that word to differentiate it from the region code.
